@@ -1,0 +1,19 @@
+<div>
+  <%= form_tag(offers_path, method: :get, :class => "", id:'parameters', remote: true) do %>
+
+    <% @fields.each do |field| %>
+      <div class="form-group">
+        <% if Offer.mandatory? field %>
+          <span class="label label-info"> Mandatory </span>
+        <% end %>
+        <%= text_field_tag(field, '', :class => "", :placeholder => field) %>
+      </div>
+    <% end %>
+
+    <%= submit_tag "Get offers", :class => "" %>
+  <% end %>
+</div>
+
+<div id="container-offers">
+  <!-- ajax:success will put the response here -->
+</div>

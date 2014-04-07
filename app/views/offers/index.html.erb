@@ -1,0 +1,22 @@
+<% if @offers.nil? %>
+  <div class="alert alert-danger">
+    Mandatory parameters are required.
+  </div>
+
+<% elsif @offers.empty? %>
+  <div class="alert alert-info">
+    No offers 
+  </div>
+
+<% else %> 
+  <div class="">
+  <% @offers.each do |offer| %> 
+    <div class="offer">
+      <div class="title"><%= offer.title %> </div>
+      <div class="title"><%= offer.payout %> </div>
+      <div class="title"><%= offer.thumbnail.lowres %> </div>
+    </div>
+  <% end %> 
+  </div>
+
+<% end %> 
