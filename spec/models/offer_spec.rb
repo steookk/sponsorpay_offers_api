@@ -33,7 +33,7 @@ describe Offer do
   end
 
   describe '.fetch_offers' do 
-    context "mandatory SponsorPay fields are not passed or they are blank" do 
+    context "mandatory SponsorPay fields are not given as arguments or they are blank" do 
       let(:fields_not_present) { {page: '1', pub0: 'campaign'} }
       let(:fields_blank) { {uid: '', page: '1', pub0: 'campaign'} }
       
@@ -43,12 +43,12 @@ describe Offer do
       end
     end
 
-    context "mandatory SponsorPay fields are passed" do 
+    context "mandatory SponsorPay fields are given as arguments" do 
       let(:fields) { {uid: '123', page: '1', pub0: 'campaign'} }
 
       context "offers are available" do 
         before do 
-          allow(SponsorPay).to receive(:offers).and_return( double(meta: { count: '2'}, offers: [ {title: 'test1'}, {title: 'test2'}]) )
+          allow(SponsorPay).to receive(:offers).and_return( double(count: '2', offers: [ {title: 'test1'}, {title: 'test2'}]) )
         end
 
         it "returns an array of Offer objects" do 
@@ -60,7 +60,7 @@ describe Offer do
 
       context "offers are not available" do 
         before do 
-          allow(SponsorPay).to receive(:offers).and_return( double(meta: { count: '0'}, offers: []) )
+          allow(SponsorPay).to receive(:offers).and_return( double(count: '0', offers: []) )
         end
 
         it "returns an empty array" do 
