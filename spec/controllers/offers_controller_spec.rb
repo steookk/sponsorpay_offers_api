@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe OffersController do
 
-  render_views #ensure that views are not throwing errors 
-
   describe '#home' do 
     before :each do 
       get :home 
@@ -13,7 +11,7 @@ describe OffersController do
       expect(response).to be_success 
     end
 
-    it 'always renders its template' do 
+    it 'always renders "home" template' do 
       expect(response).to render_template :home
     end
 
@@ -26,24 +24,21 @@ describe OffersController do
   describe '#index' do 
     let(:fields) { {uid: 'test_user'} }
     before :each do 
-      get :index, fields
+      @fetched = [double(Offer), double(Offer)]
+      allow(Offer).to receive(:fetch_offers).with(hash_including(fields)).and_return(@fetched) if Offer.respond_to? :fetch_offers
+      xhr :get, :index, fields
     end
 
     it 'is always successful' do 
       expect(response).to be_success
     end
 
-    it 'always renders its template' do 
+    it 'always renders "index" template' do 
       expect(response).to render_template :index
     end
 
-    it 'assigns offers fetched from SponsorPay' do 
-      expect(assigns(:offers)).to be_a Array
-      expect(assigns(:offers).first).to be_a Offer
+    it 'assigns any value returned from the model' do 
+      expect(assigns(:offers)).to eq @fetched
     end
-    # IL PROBLEMA DI CONTROLLARE IL RISULTATO è CHE FACENDO COSì MI LEGO ALL'IMPLEMENTAZIONE DEL MODEL E DOVREI QUINDI
-    # FARE TUTTI I CASI COME NEL MODEL. QUINDI HO SBAGLIATO A DIRE CHE NEL CONTROLLER SEGUO LA STRADA COMPLETA FINO AL DB,
-    # DEVO INVECE RIMANERE NEL CONFINE DELLA PROPRIA RESPONSABILITà
   end
-
 end

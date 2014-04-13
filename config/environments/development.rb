@@ -1,3 +1,5 @@
+require 'sponsorpay'
+
 SponsorpayOfferApi::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
 
@@ -34,4 +36,13 @@ SponsorpayOfferApi::Application.configure do
 
   # Expands the lines which load the assets
   config.assets.debug = true
+
+  SponsorPay.configure do |config|
+    config.appid = '157' #public testing
+    config.api_key = ENV['SPONSORPAY_API_KEY']
+    config.locale = 'de'
+    config.os_version = '7'
+    config.device_id = '2b6f0cc904d137be2e1730235f5664094b831186' #public testing
+    config.ip = ENV['SPONSORPAY_IP']
+  end
 end

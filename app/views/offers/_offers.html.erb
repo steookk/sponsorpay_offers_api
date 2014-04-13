@@ -1,0 +1,22 @@
+<% if @offers.respond_to? :error_message %>
+  <div class="alert alert-danger">
+    <p> <%= @offers.error_message %> </p>
+  </div>
+
+<% elsif @offers.empty? %>
+  <div class="alert alert-info">
+    No offers 
+  </div>
+
+<% else %> 
+  <div class="offers">
+  <% @offers.each do |offer| %> 
+    <div class="offer">
+      <div class="title"><%= offer.title %> </div>
+      <div class="payout"><%= offer.payout %> </div>
+      <div class="thumbnail"> <%= image_tag offer.thumbnail.lowres, :alt => "offer thumbnail" %> </div>
+    </div>
+  <% end %> 
+  </div>
+
+<% end %> 

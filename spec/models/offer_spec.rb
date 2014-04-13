@@ -32,23 +32,46 @@ describe Offer do
     end
   end
 
+  describe "#error_message" do 
+    let(:offer) { Offer.new(nil) }
+    let(:error) { 'this is a test error' }
+
+    it "sets a message" do 
+      offer.error_message = error
+      expect(offer.error_message).to eq(error)
+    end
+  end
+
   describe '.fetch_offers' do 
-    context "mandatory SponsorPay fields are not given as arguments or they are blank" do 
-      let(:fields_not_present) { {page: '1', pub0: 'campaign'} }
-      let(:fields_blank) { {uid: '', page: '1', pub0: 'campaign'} }
-      
-      it "returns nil" do 
-        expect(Offer.fetch_offers(fields_not_present)).to be_nil 
-        expect(Offer.fetch_offers(fields_blank)).to be_nil
+    shared_examples_for 'wrong parameters' do |fields, error|
+      it "returns an Offer object not containing any data" do 
+        expect {Offer.fetch_offers(fields).title}.to raise_error
+      end
+
+      it 'returns an Offer object responding to an error message' do 
+        expect(Offer.fetch_offers(fields).error_message).to match error
       end
     end
+    
+    context "validation fails (mandatory SponsorPay parametes are not given)" do 
+      context 'mandatory fields are not present' do 
+        it_behaves_like 'wrong parameters', {page: '1', pub0: 'campaign'}, /.*keys are missing/
+      end
 
-    context "mandatory SponsorPay fields are given as arguments" do 
+      context 'mandatory fields are blank' do 
+        it_behaves_like 'wrong parameters', {uid: '', page: '1', pub0: 'campaign'}, /.*keys are missing/
+      end
+
+    end
+
+    context "validation is successful" do 
       let(:fields) { {uid: '123', page: '1', pub0: 'campaign'} }
 
       context "offers are available" do 
         before do 
-          allow(SponsorPay).to receive(:offers).and_return( double(count: '2', offers: [ {title: 'test1'}, {title: 'test2'}]) )
+          allow(SponsorPay).to receive(:offers)
+                                .with('123', fields)
+                                .and_return( double(count: '2', offers: [ {title: 'test1'}, {title: 'test2'}]) )
         end
 
         it "returns an array of Offer objects" do 
@@ -68,24 +91,32 @@ describe Offer do
         end
       end
 
+      context "SponsorPay raises errors" do 
+        before do 
+          allow(SponsorPay).to receive(:offers).and_raise SponsorPay::SponsorPayError, 'ERROR_TEST'
+        end
+
+        it_behaves_like 'wrong parameters', {uid: '123', page: 'not valid page', pub0: '1'}, /ERROR.*/
+      end
+
       describe "cleaning up parameters to be passed to SponsorPay" do 
         it "deletes keys which are not declared as fields" do 
           dirty_fields = fields.clone
           dirty_fields[:action] = 'index'
-          expect(SponsorPay).to receive(:offers).with(fields).and_return(double( offers: []))
+          expect(SponsorPay).to receive(:offers).with('123', fields).and_return(double( offers: []))
           Offer.fetch_offers(dirty_fields)
         end
 
         it "deletes blank fields" do 
           fields[:page] = ''; fields[:pub0] = '    '
-          expect(SponsorPay).to receive(:offers).with( {uid: '123'} ).and_return(double( offers: []))
+          expect(SponsorPay).to receive(:offers).with('123', {uid: '123'}).and_return(double( offers: []))
           Offer.fetch_offers(fields)
         end
 
         it "strips leading and trailing spaces from fields" do 
           dirty_fields = fields.clone
           dirty_fields[:uid] = '  123   '
-          expect(SponsorPay).to receive(:offers).with( fields ).and_return(double( offers: []))
+          expect(SponsorPay).to receive(:offers).with('123', fields).and_return(double( offers: []))
           Offer.fetch_offers(dirty_fields)
         end
       end
