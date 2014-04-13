@@ -1,4 +1,6 @@
 { 
  "code" :  "NO_CONTENT" , 
- "message":  ""
+ "message":  "Successful request, but no offers are currently available for this user.",
+ "count": 0,
+ "offers":[]
 }

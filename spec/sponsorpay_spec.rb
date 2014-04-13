@@ -7,7 +7,7 @@ describe SponsorPay do
   end
 
   describe 'SponsorPay.offers' do
-    subject { SponsorPay.offers('user1') }
+    subject { SponsorPay.offers('player1', {pub0: 'campaign2', page: '2', ps_time: '1312211903'}) }
 
     context 'mandatory settings are NOT setted' do 
       it "raises an error" do 
@@ -18,20 +18,26 @@ describe SponsorPay do
     context 'mandatory settings are setted' do 
       before :each do 
         SponsorPay.configure do |config|
-          config.app_id = '123'
-          config.api_key = 'stefano_123'
-          config.locale = 'it'
+          config.appid = '157'
+          config.api_key = 'e95a21621a1865bcbae3bee89c4d4f84'
+          config.locale = 'de'
           config.os_version = '7'
+          config.ip = '212.45.111.17'
+          config.device_id = '2b6f0cc904d137be2e1730235f5664094b831186'
         end
+        allow(Time).to receive(:now).and_return('1312553361') #timestamp stub
       end
 
       context 'offers are available' do 
         before :each do 
           WebMock::API.stub_request(:get, SponsorPay.endpoint + 'offers' + '.json')
-                 .with(query: hash_including( {'uid' => 'user1', 'app_id' => '123'} ), 
-                       headers: {'Accept-Encoding' => 'gzip','Connection' => 'Keep-Alive'})
+                 .with(query: hash_including( {'uid' => 'player1', 'appid' => '157',
+                                    'hashkey' => '69a16efcca5677c4effbbc1b16249754b4f21d1c'} ), 
+                       headers: {'Accept-Encoding' => /gzip.*/,'Connection' => 'Keep-Alive'})
                  .to_return(:status => 200, :body => fixture("offers.json"), :headers => {})
-        end  #by specifying .with(query: ...) I make sure that mandatory settings are included (see api.rb)
+        end
+        #thanks to hash_including I can check the presence of:
+        # 1. user mandatory field; 2. mandatory setting 3. correct calculation of hashkey
         let(:meta_methods) { [:code, :message, :count, :pages, :information] }
 
         it 'responds to meta informations methods' do
@@ -66,22 +72,29 @@ describe SponsorPay do
       context 'offers are NOT available' do 
         before :each do 
           WebMock::API.stub_request(:get, SponsorPay.endpoint + 'offers' + '.json')
-                 .with(query: hash_including( {'uid' => 'user1', 'app_id' => '123'} ),
-                       headers: {'Accept-Encoding' => 'gzip','Connection' => 'Keep-Alive'})
-                 .to_return(:status => 200, :body => fixture("no_offers.json"), :headers => {})
+                          .with(query: hash_including( {'uid' => 'player1', 'appid' => '157',
+                                    'hashkey' => '69a16efcca5677c4effbbc1b16249754b4f21d1c'} ), 
+                                headers: {'Accept-Encoding' => /gzip.*/,'Connection' => 'Keep-Alive'})
+                          .to_return(:status => 200, :body => fixture("no_offers.json"), :headers => {})
         end 
 
         it "responds with a NO_CONTENT code" do 
           expect(subject.code).to eq('NO_CONTENT')
+        end
+
+        it "responds with an empty array of offers" do 
+          expect(subject.offers).to be_a Array
+          expect(subject.offers).to be_empty
         end
       end
 
       context 'errors' do 
         before :each do 
           WebMock::API.stub_request(:get, SponsorPay.endpoint + 'offers' + '.json')
-                 .with(query: hash_including( {'uid' => 'user1', 'app_id' => '123'} ),
-                       headers: {'Accept-Encoding' => 'gzip','Connection' => 'Keep-Alive'})
-                 .to_return(:status => 400, :body => fixture("invalid_uid.json"), :headers => {})
+                          .with(query: hash_including( {'uid' => 'player1', 'appid' => '157',
+                                    'hashkey' => '69a16efcca5677c4effbbc1b16249754b4f21d1c'} ), 
+                                headers: {'Accept-Encoding' => /gzip.*/,'Connection' => 'Keep-Alive'})
+                          .to_return(:status => 400, :body => fixture("invalid_uid.json"), :headers => {})
         end
 
         it "responds with a error code" do

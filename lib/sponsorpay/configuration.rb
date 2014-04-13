@@ -1,17 +1,16 @@
 require 'faraday'
-#require File.expand_path('../test_bed', __FILE__)
 
 module SponsorPay
 
   module Configuration
-    #include TestBed 
-
     #mandatory for the app using this library, requested by sponsorpay 
     SETTINGS = [
-      :app_id,  
+      :appid,  
       :api_key,
       :locale,
       :os_version,
+      :device_id,
+      :ip
     ].freeze
 
     # ---
